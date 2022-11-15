@@ -1,13 +1,3 @@
-use core::arch::global_asm;
-
-global_asm!(include_str!("trap.S"));
-
-pub fn init() {
-    extern "C" { fn __alltraps(); }
-    unsafe {
-        stvec::write(__alltraps as usize, TrapMode::Direct);
-    }
-}
 mod context;
 
 use riscv::register::{
@@ -23,6 +13,16 @@ use riscv::register::{
 
 use crate::syscall::syscall;
 use crate::batch::run_next_app;
+use core::arch::global_asm;
+
+global_asm!(include_str!("trap.S"));
+
+pub fn init() {
+    extern "C" { fn __alltraps(); }
+    unsafe {
+        stvec::write(__alltraps as usize, TrapMode::Direct);
+    }
+}
 
 #[no_mangle]
 pub fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
