@@ -1,6 +1,9 @@
 #![no_std]
 #![no_main]
 #![feature(panic_info_message)]
+#![feature(alloc_error_handler)]
+#[macro_use]
+extern crate bitflags;
 extern crate alloc;
 use core::arch::global_asm;
 
@@ -15,11 +18,10 @@ mod config;
 mod task;
 mod timer;
 mod mm;
+mod sync;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
-
-mm::init();
 
 fn clear_bss() {
     extern "C" {
@@ -40,33 +42,8 @@ pub fn rust_main() -> ! {
     trap::init();
     loader::load_apps();
     task::run_first_task();
+    mm::init();
     panic!("Unreachable in rust_main!");
 }
 
-#![feature(alloc_error_handler)]
 
-// os/src/mm/heap_allocator.rs
-#[alloc_error_handler]
-pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
-    panic!("Heap allocation error, layout = {:?}", layout);
-}
-
-#[macro_use]
-extern crate bitflags;
-
-// os/src/mm/page_table.rs
-
-use bitflags::*;
-
-bitflags! {
-    pub struct PTEFlags: u8 {
-        const V = 1 << 0;
-        const R = 1 << 1;
-        const W = 1 << 2;
-        const X = 1 << 3;
-        const U = 1 << 4;
-        const G = 1 << 5;
-        const A = 1 << 6;
-        const D = 1 << 7;
-    }
-}
