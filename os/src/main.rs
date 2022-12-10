@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(panic_info_message)]
-
+extern crate alloc;
 use core::arch::global_asm;
 
 #[macro_use]
@@ -14,9 +14,11 @@ mod loader;
 mod config;
 mod task;
 mod timer;
-
+mod mm;
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("link_app.S"));
+
+mm::init();
 
 fn clear_bss() {
     extern "C" {
@@ -38,4 +40,12 @@ pub fn rust_main() -> ! {
     loader::load_apps();
     task::run_first_task();
     panic!("Unreachable in rust_main!");
+}
+
+#![feature(alloc_error_handler)]
+
+// os/src/mm/heap_allocator.rs
+#[alloc_error_handler]
+pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
+    panic!("Heap allocation error, layout = {:?}", layout);
 }
