@@ -12,8 +12,16 @@ pub use page_table::{PageTableEntry, translated_byte_buffer};
 pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission};
 pub use memory_set::remap_test;
 
+pub use page_table::{
+    PageTableEntry,
+    translated_byte_buffer,
+    translated_str,
+    translated_refmut,
+};
+
 pub fn init() {
     heap_allocator::init_heap();
     frame_allocator::init_frame_allocator();
     KERNEL_SPACE.exclusive_access().activate();
 }
+
